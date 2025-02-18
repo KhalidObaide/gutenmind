@@ -1,14 +1,31 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Play, Clock, Sparkles, BookOpen } from "lucide-react"
+import { Book } from "@prisma/client"
+import { Skeleton } from "@/components/ui/skeleton"
+import axios from "axios"
+import { displayDate } from "@/lib/utils"
 
 export default function GutenMind() {
   const router = useRouter()
+  const [books, setBooks] = useState<Book[] | null>(null);
   const [bookId, setBookId] = useState("")
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await axios.get('/api/books');
+        setBooks(response.data);
+      } catch { }
+    }
+
+    fetchBooks();
+  }, []);
 
   const handleAnalyze = () => {
     if (bookId) {
@@ -28,7 +45,7 @@ export default function GutenMind() {
         </div>
 
         {/* Search Section */}
-        <div className="flex gap-4">
+        <div className="flex gap-4 items-center">
           <div className="relative flex-1">
             <BookOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
@@ -36,6 +53,7 @@ export default function GutenMind() {
               className="pl-10 h-12 text-lg border-2 rounded-xl focus:ring-2 focus:ring-purple-300 focus:border-purple-500 transition-all duration-300"
               value={bookId}
               onChange={(e) => setBookId(e.target.value)}
+              type="number"
             />
           </div>
           <Button
@@ -49,30 +67,25 @@ export default function GutenMind() {
 
         <div className="h-px bg-gray-200" />
 
-        {/* Previous Interactions Section */}
+        {/* Recent Interactions Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-xl font-semibold text-muted-foreground">
             <Clock className="w-6 h-6" />
-            <h2>Previous Interactions</h2>
+            <h2>Recent Interactions</h2>
           </div>
           <div className="space-y-3">
-            {[
-              { id: "1", title: "Art of War - Sun Tzu", date: "19 Feb 2025" },
-              { id: "2", title: "Pride and Prejudice - Jane Austen", date: "15 Jan 2025" },
-              { id: "3", title: "The Republic - Plato", date: "10 Dec 2024" },
-              { id: "4", title: "To Kill a Mockingbird - Harper Lee", date: "5 Nov 2024" },
-              { id: "5", title: "1984 - George Orwell", date: "22 Oct 2024" },
-              { id: "6", title: "The Great Gatsby - F. Scott Fitzgerald", date: "17 Sep 2024" },
-              { id: "7", title: "Moby-Dick - Herman Melville", date: "3 Aug 2024" },
-            ].map((item) => (
+            {!books ? [1, 2, 3, 4].map(i => (
+              <Skeleton className="h-[90px] w-full" key={i} />
+            )) : books.map((book: Book) => (
               <div
-                key={item.id}
+                key={book.gutenId}
                 className="flex items-center justify-between p-4 border-2 rounded-xl transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:border-purple-200 hover:shadow-md cursor-pointer"
-                onClick={() => router.push(`/analyze/${item.id}`)}
+                onClick={() => router.push(`/analyze/${book.gutenId}`)}
               >
                 <div className="space-y-1">
-                  <h3 className="text-lg font-medium">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.date}</p>
+                  <Badge className="bg-purple-400 -mt-8">{book.gutenId}</Badge>
+                  <h3 className="text-lg font-medium">{book.title}</h3>
+                  <p className="text-sm text-muted-foreground">{displayDate(book.createdAt)}</p>
                 </div>
                 <Button
                   size="icon"
