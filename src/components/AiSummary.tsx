@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Bookmark, Sparkles } from "lucide-react"
 import { motion, AnimatePresence, useAnimation } from "framer-motion"
 import axios from "axios"
 import { Skeleton } from "./ui/skeleton"
+import Pusher from "pusher-js"
 
 interface SummarizeButtonProps {
   gutenId: number;
@@ -17,8 +18,7 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
   const [progress, setProgress] = useState<number>(0);
   const [summary, setSummary] = useState<string[]>([])
   const progressAnimation = useAnimation()
-
-  const ws = useRef<WebSocket | null>(null)
+  const [error, setError] = useState<string | null>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,22 +43,24 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
 
   useEffect(() => {
     if (!isReceiving) return;
-    ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_SOCKET_URL}/gutenId=${gutenId}`)
-
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data)
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || "", {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || ""
+    });
+    const channel = pusher.subscribe(gutenId.toString());
+    channel.bind('progress-update', (data: { progress: number, bulletpoints?: string[] }) => {
+      console.log(data);
       setProgress(data.progress);
       if (data.progress >= 100) {
-        setSummary(data.bulletpoints);
+        setSummary(data.bulletpoints || []);
         setIsReceiving(false)
-        if (ws.current) ws.current.close()
+        pusher.unsubscribe(gutenId.toString());
       }
-    }
+    });
 
-    ws.current.onclose = () => {
-      console.log("WebSocket connection closed")
+    channel.bind("failed", (data: { message: string }) => {
+      setError(data.message);
       setIsReceiving(false);
-    }
+    });
 
   }, [isReceiving, gutenId]);
 
@@ -74,6 +76,8 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
     setProgress(0)
     setSummary([])
   }
+
+  if (error) return <div>{error}</div>
 
   if (isLoading || isNaN(gutenId)) return (
     <Skeleton className="h-full w-full" />

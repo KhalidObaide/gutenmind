@@ -170,7 +170,7 @@ The art of war, then, is governed by five constant factors, to be taken into acc
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <AiSummary gutenId={Number(id)} />
+              {book && <AiSummary gutenId={Number(id)} />}
             </CardContent>
           </Card>
         </div>
