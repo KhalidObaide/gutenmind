@@ -36,10 +36,7 @@ export async function GET(
   }
 
   // Send the response first
-  NextResponse.json({ status: "channel_available" });
-
-  // Use a Promise to ensure async execution continues after response is sent
-  Promise.resolve().then(async () => {
+  setTimeout(async () => {
     const pusher = new Pusher({
       appId: process.env.PUSHER_APP_ID || "",
       secret: process.env.PUSHER_SECRET || "",
@@ -85,7 +82,7 @@ export async function GET(
         bulletPoints: bulletpoints,
       },
     });
-  });
+  }, 0);
 
   return NextResponse.json({ status: "channel_available" });
 }
