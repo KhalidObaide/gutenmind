@@ -30,8 +30,8 @@ export async function GET(
   if (!record) {
     try {
       const metadata = await fetchBookMetadata(gutenId);
-      await storeBookText(gutenId);
       record = await createNewBook(gutenId, metadata);
+      await storeBookText(record);
     } catch (err) {
       if (err instanceof Error) {
         const errorMessages: Record<string, string> = {

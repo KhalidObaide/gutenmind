@@ -9,9 +9,15 @@ generator client {
 
 model Book {
   gutenId     Int      @id
+  textUrl     String   @default("")
   title       String
   author      String
   publishDate DateTime
   language    String
   createdAt   DateTime @default(now())
+}
+
+model AiSummary {
+  gutenId      Int      @unique
+  bulletPoints String[]
 }

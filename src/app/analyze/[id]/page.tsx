@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import AiSummary from "@/components/AiSummary"
 import {
   ArrowLeft,
   Calendar,
@@ -12,8 +13,6 @@ import {
   Languages,
   Star,
   Timer,
-  Bookmark,
-  TrendingUp,
   BrainCircuit,
   Book as BookIcon
 } from "lucide-react"
@@ -176,28 +175,7 @@ The art of war, then, is governed by five constant factors, to be taken into acc
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <h3 className="font-semibold flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-purple-500" />
-                  Key Insights
-                </h3>
-                <ul className="space-y-2 text-sm">
-                  {bookData.analysis.keyInsights.map((insight, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <Bookmark className="h-4 w-4 text-purple-500 shrink-0 mt-1" />
-                      {insight}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-semibold">Writing Style</h3>
-                <p className="text-sm text-muted-foreground">{bookData.analysis.writingStyle}</p>
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-semibold">Historical Impact</h3>
-                <p className="text-sm text-muted-foreground">{bookData.analysis.impact}</p>
-              </div>
+              <AiSummary gutenId={Number(id)} />
             </CardContent>
           </Card>
         </div>
