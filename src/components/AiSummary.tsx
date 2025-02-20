@@ -71,10 +71,15 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
     })
   }, [progress, progressAnimation])
 
-  const handleClick = () => {
-    setIsReceiving(true)
+  const handleClick = async () => {
     setProgress(0)
     setSummary([])
+    setIsReceiving(true)
+    try {
+      await axios.post(`/api/ai/${gutenId}`);
+    } catch {
+      setError("Something went wrong. Please try again later");
+    }
   }
 
   if (error) return <div>{error}</div>
