@@ -10,6 +10,10 @@ import Pusher from "pusher";
 
 const prisma = new PrismaClient();
 
+export const config = {
+  runtime: "edge", // Run as an Edge Function
+};
+
 export async function GET(
   _: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -35,8 +39,7 @@ export async function GET(
     });
   }
 
-  // Send the response first
-  setTimeout(async () => {
+  (async () => {
     const pusher = new Pusher({
       appId: process.env.PUSHER_APP_ID || "",
       secret: process.env.PUSHER_SECRET || "",
@@ -82,7 +85,7 @@ export async function GET(
         bulletPoints: bulletpoints,
       },
     });
-  }, 0);
+  })();
 
   return NextResponse.json({ status: "channel_available" });
 }
