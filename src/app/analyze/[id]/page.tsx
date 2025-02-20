@@ -11,7 +11,6 @@ import {
   Calendar,
   Globe,
   Languages,
-  Star,
   Timer,
   BrainCircuit,
   Book as BookIcon
@@ -92,10 +91,6 @@ The art of war, then, is governed by five constant factors, to be taken into acc
           <Button variant="ghost" className="hover:bg-purple-100" onClick={() => router.push("/")}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
           </Button>
-          <div className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-            <span className="font-semibold">{bookData.rating}</span>
-          </div>
         </div>
 
         {!book ? <Skeleton className="h-16 w-[500px]" /> :
