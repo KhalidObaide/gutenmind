@@ -43,7 +43,7 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
 
   useEffect(() => {
     if (!isReceiving) return;
-    ws.current = new WebSocket(`ws://localhost:3001/gutenId=${gutenId}`)
+    ws.current = new WebSocket(`${process.env.NEXT_PUBLIC_SOCKET_URL}/gutenId=${gutenId}`)
 
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data)
