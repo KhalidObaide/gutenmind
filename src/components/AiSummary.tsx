@@ -17,6 +17,7 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
   const [isReceiving, setIsReceiving] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [summary, setSummary] = useState<string[]>([])
+  const [connectionId, setConnectionId] = useState<string | null>(null);
   const progressAnimation = useAnimation()
   const [error, setError] = useState<string | null>("");
 
@@ -42,18 +43,17 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
   }, [gutenId])
 
   useEffect(() => {
-    if (!isReceiving) return;
+    if (!isReceiving || !connectionId) return;
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY || "", {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || ""
     });
-    const channel = pusher.subscribe(gutenId.toString());
+    const channel = pusher.subscribe(connectionId);
     channel.bind('progress-update', (data: { progress: number, bulletpoints?: string[] }) => {
-      console.log(data);
       setProgress(data.progress);
       if (data.progress >= 100) {
         setSummary(data.bulletpoints || []);
         setIsReceiving(false)
-        pusher.unsubscribe(gutenId.toString());
+        pusher.unsubscribe(connectionId);
       }
     });
 
@@ -62,7 +62,7 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
       setIsReceiving(false);
     });
 
-  }, [isReceiving, gutenId]);
+  }, [isReceiving, gutenId, connectionId]);
 
   useEffect(() => {
     progressAnimation.start({
@@ -74,9 +74,12 @@ export default function SummarizeButton({ gutenId }: SummarizeButtonProps) {
   const handleClick = async () => {
     setProgress(0)
     setSummary([])
-    setIsReceiving(true)
     try {
-      await axios.post(`/api/ai/${gutenId}`);
+      const response = await axios.post(`/api/ai/${gutenId}`);
+      if (response.status === 200) {
+        setConnectionId(response.data.connectionId);
+        setIsReceiving(true);
+      }
     } catch {
       setError("Something went wrong. Please try again later");
     }

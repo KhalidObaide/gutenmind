@@ -1,12 +1,7 @@
-import {
-  generateChunks,
-  generateSummary,
-  getBookText,
-  summarizeBook,
-} from "@/lib/ai";
+import { inngest } from "@/inngest/client";
 import { AiSummary, PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
-import Pusher from "pusher";
+import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
@@ -56,51 +51,11 @@ export async function POST(
     );
   }
 
-  const pusher = new Pusher({
-    appId: process.env.PUSHER_APP_ID || "",
-    secret: process.env.PUSHER_SECRET || "",
-    key: process.env.NEXT_PUBLIC_PUSHER_KEY || "",
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "",
+  const connectionId = uuidv4();
+  await inngest.send({
+    name: "ai/book-summarize",
+    data: { gutenId, connectionId },
   });
 
-  const bookText = await getBookText(Number(gutenId));
-  const chunks = generateChunks(bookText);
-  const partialSummaries: string[] = [];
-
-  for (let i = 0; i < chunks.length; i++) {
-    try {
-      const summary = await generateSummary(chunks[i]);
-      partialSummaries.push(summary);
-      let progress = Math.ceil((i / chunks.length) * 100);
-      if (progress > 90) progress -= 2; // this to take into account the last request
-      pusher.trigger(gutenId.toString(), "progress-update", { progress });
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === "failed_generate_summary"
-      ) {
-        pusher.trigger(gutenId.toString(), "failed", {
-          message: "Failed to generate summary for this book.",
-        });
-        return;
-      }
-    }
-  }
-
-  const bulletpoints = await summarizeBook(partialSummaries);
-  pusher.trigger(gutenId.toString(), "progress-update", {
-    progress: 100,
-    bulletpoints,
-  });
-
-  await prisma.aiSummary.upsert({
-    where: { gutenId },
-    update: {},
-    create: {
-      gutenId,
-      bulletPoints: bulletpoints,
-    },
-  });
-
-  return NextResponse.json({ status: "saved" });
+  return NextResponse.json({ status: "background-job-started!", connectionId });
 }
