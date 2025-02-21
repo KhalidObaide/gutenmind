@@ -33,7 +33,12 @@ const fetchBookMetadata = async (gutenId: number): Promise<BookMetadata> => {
       title: metadata["Title"] || "Unknown Title",
       author: metadata["Author"] || "Unknown Author",
       language: metadata["Language"] || "-",
-      publishDate: new Date(1200, 12, 21),
+      attributes: Object.entries(metadata)
+        .map(([key, value]) => ({ key, value }))
+        .filter(
+          (item) =>
+            !["Title", "Author", "Language", "Summary"].includes(item.key),
+        ),
     };
   } catch (error) {
     console.log(error);
@@ -108,8 +113,8 @@ const createNewBook = async (
       gutenId,
       title: metadata.title,
       author: metadata.author,
-      publishDate: new Date(1922, 12, 10),
       language: metadata.language,
+      attributes: metadata.attributes,
     },
   });
 };
